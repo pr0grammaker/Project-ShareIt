@@ -118,9 +118,3 @@ ru.yandex.practicum
 - `GET /items/{itemId}` — получить вещь
 - `GET /items` — вещи владельца
 - `GET /items/search?text=` — поиск вещей
-
-📌 Заголовок:
-
-```
-
-X-Sharer-User-Id: {userId}
