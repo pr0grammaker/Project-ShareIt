@@ -15,13 +15,15 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final ItemMapper itemMapper;
 
     @Override
     public Item create(long userId, ItemDto itemDto) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        if (userRepository.findById(userId).isEmpty()) {
+            throw new NotFoundException("User not found");
+        }
 
-        Item item = ItemMapper.mapToItem(itemDto);
+        Item item = itemMapper.mapToItem(itemDto);
         item.setOwnerId(userId);
 
         return itemRepository.save(item);

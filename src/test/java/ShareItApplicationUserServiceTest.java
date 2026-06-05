@@ -88,7 +88,7 @@ public class ShareItApplicationUserServiceTest {
     @Test
     void updateUser_EmailAlreadyExists() {
         User user1 = createTestUser("Bob", "bob@mail.com");
-        User user2 = createTestUser("Alex", "alex@mail.com");
+        createTestUser("Alex", "alex@mail.com");
 
         UserDto dto = new UserDto();
         dto.setEmail("alex@mail.com");

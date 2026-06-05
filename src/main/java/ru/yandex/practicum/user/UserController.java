@@ -3,6 +3,7 @@ package ru.yandex.practicum.user;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
@@ -15,32 +16,31 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public Collection<User> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<Collection<User>> getAllUsers() {
+        return ResponseEntity.ok().body(userService.getAllUsers());
     }
 
     @GetMapping("/{userId}")
-    public User getUserById(@PathVariable("userId") long userId) {
-        return userService.getUserById(userId);
+    public ResponseEntity<User> getUserById(@PathVariable("userId") long userId) {
+        return ResponseEntity.ok().body(userService.getUserById(userId));
     }
 
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public User createUser(@Valid @RequestBody UserDto userDto) {
-        return userService.createUser(userDto);
+    public ResponseEntity<User> createUser(@Valid @RequestBody UserDto userDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userDto));
     }
 
     @PatchMapping("/{userId}")
-    public User updateUser(@PathVariable("userId") long userId,
-                           @RequestBody UserDto userDto) {
-        return userService.updateUser(userId, userDto);
+    public ResponseEntity<User> updateUser(@PathVariable("userId") long userId,
+                                           @RequestBody UserDto userDto) {
+        return ResponseEntity.ok().body(userService.updateUser(userId, userDto));
     }
 
     @DeleteMapping("/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable("userId") long userId) {
+    public ResponseEntity<Void> deleteUser(@PathVariable("userId") long userId) {
         userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
     }
 
 

@@ -2,6 +2,8 @@ package ru.yandex.practicum.item;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
@@ -13,31 +15,31 @@ public class ItemController {
     private final ItemService itemService;
 
     @PostMapping
-    public Item addItem(@RequestHeader("X-Sharer-User-Id") long userId,
-                        @Valid @RequestBody ItemDto itemDto) {
-        return itemService.create(userId, itemDto);
+    public ResponseEntity<Item> addItem(@RequestHeader("X-Sharer-User-Id") long userId,
+                                        @Valid @RequestBody ItemDto itemDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.create(userId, itemDto));
     }
 
     @PatchMapping("/{itemId}")
-    public Item updateItem(@RequestHeader("X-Sharer-User-Id") long userId,
-                           @PathVariable("itemId") long itemId,
-                           @RequestBody ItemDto itemDto) {
-        return itemService.update(userId, itemId, itemDto);
+    public ResponseEntity<Item> updateItem(@RequestHeader("X-Sharer-User-Id") long userId,
+                                           @PathVariable("itemId") long itemId,
+                                           @RequestBody ItemDto itemDto) {
+        return ResponseEntity.ok().body(itemService.create(userId, itemDto));
     }
 
     @GetMapping("/{itemId}")
-    public Item getItemById(@PathVariable("itemId") long itemId) {
-        return itemService.getItemById(itemId);
+    public ResponseEntity<Item> getItemById(@PathVariable("itemId") long itemId) {
+        return ResponseEntity.ok().body(itemService.getItemById(itemId));
     }
 
     @GetMapping
-    public Collection<Item> getAllItemsByOwner(@RequestHeader("X-Sharer-User-Id") long userId) {
-        return itemService.getItemsByOwner(userId);
+    public ResponseEntity<Collection<Item>> getAllItemsByOwner(@RequestHeader("X-Sharer-User-Id") long userId) {
+        return ResponseEntity.ok().body(itemService.getItemsByOwner(userId));
     }
 
     @GetMapping("/search")
-    public Collection<Item> searchItemsByText(@RequestParam(required = false, defaultValue = "") String text) {
-        return itemService.searchByText(text);
+    public ResponseEntity<Collection<Item>> searchItemsByText(@RequestParam(required = false, defaultValue = "") String text) {
+        return ResponseEntity.ok().body(itemService.searchByText(text));
     }
 
 

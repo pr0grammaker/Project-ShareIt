@@ -11,6 +11,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
     public Collection<User> getAllUsers() {
@@ -24,7 +25,7 @@ public class UserServiceImpl implements UserService {
                     "Пользователь с таким email уже существует");
         }
 
-        User user = UserMapper.mapToUser(userDto);
+        User user = userMapper.mapToUser(userDto);
 
         return userRepository.save(user);
     }
