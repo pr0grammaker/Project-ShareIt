@@ -13,33 +13,56 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class ItemController {
     private final ItemService itemService;
+    private final CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<Item> addItem(@RequestHeader("X-Sharer-User-Id") long userId,
-                                        @Valid @RequestBody ItemDto itemDto) {
+    public ResponseEntity<ItemDto> addItem(
+            @RequestHeader("X-Sharer-User-Id") long userId,
+            @Valid @RequestBody ItemDto itemDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(itemService.create(userId, itemDto));
     }
 
     @PatchMapping("/{itemId}")
-    public ResponseEntity<Item> updateItem(@RequestHeader("X-Sharer-User-Id") long userId,
-                                           @PathVariable("itemId") long itemId,
-                                           @RequestBody ItemDto itemDto) {
-        return ResponseEntity.ok().body(itemService.create(userId, itemDto));
+    public ResponseEntity<ItemDto> updateItem(
+            @RequestHeader("X-Sharer-User-Id") long userId,
+            @PathVariable("itemId") long itemId,
+            @RequestBody ItemDto itemDto) {
+        return ResponseEntity.ok().body(itemService.update(userId, itemId, itemDto));
     }
 
     @GetMapping("/{itemId}")
-    public ResponseEntity<Item> getItemById(@PathVariable("itemId") long itemId) {
+    public ResponseEntity<ItemDto> getItemById(
+            @PathVariable("itemId") long itemId) {
         return ResponseEntity.ok().body(itemService.getItemById(itemId));
     }
 
     @GetMapping
-    public ResponseEntity<Collection<Item>> getAllItemsByOwner(@RequestHeader("X-Sharer-User-Id") long userId) {
+    public ResponseEntity<Collection<ItemDto>> getAllItemsByOwner(
+            @RequestHeader("X-Sharer-User-Id") long userId) {
         return ResponseEntity.ok().body(itemService.getItemsByOwner(userId));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Collection<Item>> searchItemsByText(@RequestParam(required = false, defaultValue = "") String text) {
+    public ResponseEntity<Collection<ItemDto>> searchItemsByText(
+            @RequestParam(required = false, defaultValue = "") String text) {
         return ResponseEntity.ok().body(itemService.searchByText(text));
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public ResponseEntity<CommentResponseDto> createComment(
+                    @RequestHeader("X-Sharer-User-Id") long userId,
+                    @PathVariable("itemId") long itemId,
+                    @Valid @RequestBody CommentDto commentDto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(commentService.createComment(userId, itemId, commentDto));
+    }
+
+    @GetMapping("/{itemId}/comments")
+    public ResponseEntity<Collection<ItemDto>> getCommentsByItemId(
+            @RequestHeader("X-Sharer-User-Id") long userId,
+            @PathVariable("itemId") long itemId
+    ){
+        return ResponseEntity.ok().body(itemService.getCommentsByItemId(userId, itemId));
     }
 
 
