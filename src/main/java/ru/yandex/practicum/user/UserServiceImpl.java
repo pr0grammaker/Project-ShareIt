@@ -9,9 +9,9 @@ import java.util.Collection;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImplDb implements UserService {
+public class UserServiceImpl implements UserService {
 
-    private final UserRepositoryDb userRepositoryDb;
+    private final UserRepository userRepositoryDb;
     private final UserMapper userMapper;
 
     @Override

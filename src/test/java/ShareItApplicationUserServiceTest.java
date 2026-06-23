@@ -6,7 +6,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.ShareItApplication;
 import ru.yandex.practicum.expection.DuplicatedDataException;
 import ru.yandex.practicum.expection.NotFoundException;
-import ru.yandex.practicum.item.ItemRepositoryDb;
+import ru.yandex.practicum.item.ItemRepository;
 import ru.yandex.practicum.user.*;
 
 import java.util.Collection;
@@ -22,10 +22,10 @@ public class ShareItApplicationUserServiceTest {
     private UserService userService;
 
     @Autowired
-    private UserRepositoryDb userRepositoryDb;
+    private UserRepository userRepositoryDb;
 
     @Autowired
-    private ItemRepositoryDb itemRepositoryDb;
+    private ItemRepository itemRepositoryDb;
 
     @BeforeEach
     void clearDb() {

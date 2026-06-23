@@ -18,8 +18,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
               AND b.bookingEnd < :now
             ORDER BY b.bookingEnd DESC
             """)
-    Booking findLastBooking(@Param("itemId") long itemId,
-                            @Param("now") LocalDateTime now);
+    Optional<Booking> findLastBooking(@Param("itemId") long itemId,
+                                      @Param("now") LocalDateTime now);
 
     @Query("""
             SELECT b
@@ -28,8 +28,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
               AND b.bookingStart > :now
             ORDER BY b.bookingStart ASC
             """)
-    Booking findNextBooking(@Param("itemId") long itemId,
-                            @Param("now") LocalDateTime now);
+    Optional<Booking> findNextBooking(@Param("itemId") long itemId,
+                                      @Param("now") LocalDateTime now);
 
     @Query(value = """
             SELECT b.*

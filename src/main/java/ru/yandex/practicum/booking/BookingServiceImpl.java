@@ -7,9 +7,9 @@ import ru.yandex.practicum.enums.Status;
 import ru.yandex.practicum.expection.ConditionsNotMetException;
 import ru.yandex.practicum.expection.NotFoundException;
 import ru.yandex.practicum.item.Item;
-import ru.yandex.practicum.item.ItemRepositoryDb;
+import ru.yandex.practicum.item.ItemRepository;
 import ru.yandex.practicum.user.User;
-import ru.yandex.practicum.user.UserRepositoryDb;
+import ru.yandex.practicum.user.UserRepository;
 
 import java.util.List;
 import java.util.Objects;
@@ -20,9 +20,9 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
 
-    private final UserRepositoryDb userRepositoryDb;
+    private final UserRepository userRepositoryDb;
 
-    private final ItemRepositoryDb itemRepositoryDb;
+    private final ItemRepository itemRepositoryDb;
 
     private final BookingMapper bookingMapper;
 

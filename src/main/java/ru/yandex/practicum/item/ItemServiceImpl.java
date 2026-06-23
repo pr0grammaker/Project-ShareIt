@@ -7,7 +7,7 @@ import ru.yandex.practicum.booking.BookingRepository;
 import ru.yandex.practicum.expection.ConditionsNotMetException;
 import ru.yandex.practicum.expection.NotFoundException;
 import ru.yandex.practicum.user.User;
-import ru.yandex.practicum.user.UserRepositoryDb;
+import ru.yandex.practicum.user.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -16,10 +16,10 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-public class ItemServiceImplNewDb implements ItemService, CommentService {
+public class ItemServiceImpl implements ItemService, CommentService {
 
-    private final ItemRepositoryDb itemRepositoryDb;
-    private final UserRepositoryDb userRepositoryDb;
+    private final ItemRepository itemRepositoryDb;
+    private final UserRepository userRepositoryDb;
     private final ItemMapper itemMapper;
     private final BookingRepository bookingRepository;
     private final BookingMapper bookingMapper;
@@ -95,12 +95,14 @@ public class ItemServiceImplNewDb implements ItemService, CommentService {
                     dto.setLastBooking(
                             bookingMapper.mapToBookingResponseDto(
                                     bookingRepository.findLastBooking(item.getId(), LocalDateTime.now())
+                                            .orElse(null)
                             )
                     );
 
                     dto.setNextBooking(
                             bookingMapper.mapToBookingResponseDto(
                                     bookingRepository.findNextBooking(item.getId(), LocalDateTime.now())
+                                            .orElse(null)
                             )
                     );
 
@@ -161,11 +163,13 @@ public class ItemServiceImplNewDb implements ItemService, CommentService {
         itemDto.setLastBooking(
                 bookingMapper.mapToBookingResponseDto(
                         bookingRepository.findLastBooking(itemId, LocalDateTime.now())
+                                .orElse(null)
                 )
         );
         itemDto.setNextBooking(
                 bookingMapper.mapToBookingResponseDto(
                         bookingRepository.findNextBooking(itemId, LocalDateTime.now())
+                                .orElse(null)
                 )
         );
         return List.of(itemDto);
