@@ -6,6 +6,8 @@ import ru.yandex.practicum.booking.BookingMapper;
 import ru.yandex.practicum.booking.BookingRepository;
 import ru.yandex.practicum.expection.ConditionsNotMetException;
 import ru.yandex.practicum.expection.NotFoundException;
+import ru.yandex.practicum.request.ItemRequest;
+import ru.yandex.practicum.request.ItemRequestRepository;
 import ru.yandex.practicum.user.User;
 import ru.yandex.practicum.user.UserRepository;
 
@@ -25,6 +27,7 @@ public class ItemServiceImpl implements ItemService, CommentService {
     private final BookingMapper bookingMapper;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Override
     public ItemDto create(long userId, ItemDto itemDto) {
@@ -37,6 +40,12 @@ public class ItemServiceImpl implements ItemService, CommentService {
 
         Item item = itemMapper.mapToItem(itemDto);
         item.setOwner(owner);
+
+        if (itemDto.getRequestId() != null) {
+            ItemRequest request = itemRequestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException("Request not found"));
+            item.setRequest(request);
+        }
 
         Item savedItem = itemRepositoryDb.save(item);
 

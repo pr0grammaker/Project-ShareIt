@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.yandex.practicum.request.ItemRequest;
 import ru.yandex.practicum.user.User;
 
 @Entity
@@ -30,6 +31,7 @@ public class Item {
     @Column(nullable = false)
     private boolean available;
 
-    @Column(name = "request_id")
-    private Long requestId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "request_id", nullable = false)
+    private ItemRequest request;
 }
