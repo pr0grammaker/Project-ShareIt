@@ -2,10 +2,9 @@ package ru.yandex.practicum.item;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.http.clients.CommentHttpClient;
-import ru.yandex.practicum.http.clients.ItemHttpClient;
 
 import java.util.Collection;
 
@@ -13,14 +12,14 @@ import java.util.Collection;
 @RequestMapping("/items")
 @RequiredArgsConstructor
 public class ItemController {
-    private final ItemHttpClient itemHttpClient;
-    private final CommentHttpClient commentHttpClient;
+    private final ItemService itemService;
+    private final CommentService commentService;
 
     @PostMapping
     public ResponseEntity<ItemDto> addItem(
             @RequestHeader("X-Sharer-User-Id") long userId,
             @Valid @RequestBody ItemDto itemDto) {
-        return itemHttpClient.addItem(userId, itemDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.create(userId, itemDto));
     }
 
     @PatchMapping("/{itemId}")
@@ -28,41 +27,42 @@ public class ItemController {
             @RequestHeader("X-Sharer-User-Id") long userId,
             @PathVariable("itemId") long itemId,
             @RequestBody ItemDto itemDto) {
-        return itemHttpClient.updateItem(userId, itemId, itemDto);
+        return ResponseEntity.ok().body(itemService.update(userId, itemId, itemDto));
     }
 
     @GetMapping("/{itemId}")
     public ResponseEntity<ItemDto> getItemById(
             @PathVariable("itemId") long itemId) {
-        return itemHttpClient.getItemById(itemId);
+        return ResponseEntity.ok().body(itemService.getItemById(itemId));
     }
 
     @GetMapping
     public ResponseEntity<Collection<ItemDto>> getAllItemsByOwner(
             @RequestHeader("X-Sharer-User-Id") long userId) {
-        return itemHttpClient.getAllItemsByOwner(userId);
+        return ResponseEntity.ok().body(itemService.getItemsByOwner(userId));
     }
 
     @GetMapping("/search")
     public ResponseEntity<Collection<ItemDto>> searchItemsByText(
             @RequestParam(required = false, defaultValue = "") String text) {
-        return itemHttpClient.searchItemsByText(text);
+        return ResponseEntity.ok().body(itemService.searchByText(text));
     }
 
     @PostMapping("/{itemId}/comment")
     public ResponseEntity<CommentResponseDto> createComment(
-            @RequestHeader("X-Sharer-User-Id") long userId,
-            @PathVariable("itemId") long itemId,
-            @Valid @RequestBody CommentDto commentDto) {
-        return commentHttpClient.createComment(userId, itemId, commentDto);
+                    @RequestHeader("X-Sharer-User-Id") long userId,
+                    @PathVariable("itemId") long itemId,
+                    @Valid @RequestBody CommentDto commentDto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(commentService.createComment(userId, itemId, commentDto));
     }
 
     @GetMapping("/{itemId}/comments")
     public ResponseEntity<Collection<ItemDto>> getCommentsByItemId(
             @RequestHeader("X-Sharer-User-Id") long userId,
             @PathVariable("itemId") long itemId
-    ) {
-        return itemHttpClient.getCommentsByItemId(userId, itemId);
+    ){
+        return ResponseEntity.ok().body(itemService.getCommentsByItemId(userId, itemId));
     }
 
 

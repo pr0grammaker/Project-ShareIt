@@ -1,11 +1,9 @@
 package ru.yandex.practicum.user;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.http.clients.UserHttpClient;
 
 import java.util.Collection;
 
@@ -14,33 +12,34 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserHttpClient userHttpClient;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<Collection<UserDto>> getAllUsers() {
-        return userHttpClient.getAllUsers();
+        return ResponseEntity.ok().body(userService.getAllUsers());
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserDto> getUserById(@PathVariable("userId") long userId) {
-        return userHttpClient.getUserById(userId);
+        return ResponseEntity.ok().body(userService.getUserById(userId));
     }
 
 
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserDto userDto) {
-        return userHttpClient.createUser(userDto);
+    public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userDto));
     }
 
     @PatchMapping("/{userId}")
     public ResponseEntity<UserDto> updateUser(@PathVariable("userId") long userId,
                                               @RequestBody UserDto userDto) {
-        return userHttpClient.updateUser(userId, userDto);
+        return ResponseEntity.ok().body(userService.updateUser(userId, userDto));
     }
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable("userId") long userId) {
-        return userHttpClient.deleteUser(userId);
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
     }
 
 
