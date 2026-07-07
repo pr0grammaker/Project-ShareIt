@@ -35,11 +35,19 @@ public class BookingServiceImpl implements BookingService {
         Item item = itemRepositoryDb.findById(bookingDto.getItemId())
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
+        if (bookingDto.getBookingStart() == null || bookingDto.getBookingEnd() == null) {
+            throw new ConditionsNotMetException("Дата начала или окончания бронирования не может быть пустой");
+        }
+
         if (bookingDto.getBookingStart().equals(bookingDto.getBookingEnd())) {
             throw new ConditionsNotMetException("Дата начала и окончания не могут совпадать");
         }
         if (bookingDto.getBookingEnd().isBefore(bookingDto.getBookingStart())) {
             throw new ConditionsNotMetException("Дата окончания должна быть позже даты начала");
+        }
+
+        if (!item.isAvailable()) {
+            throw new ConditionsNotMetException("Вещь не доступна");
         }
 
         Booking booking = Booking.builder()

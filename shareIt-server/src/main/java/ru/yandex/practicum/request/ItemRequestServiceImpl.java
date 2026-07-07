@@ -59,11 +59,11 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
-    public ItemRequestResponseDto getById(long userId) {
+    public ItemRequestResponseDto getById(long userId, long requestId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        ItemRequest request = itemRequestRepository.findById(userId)
+        ItemRequest request = itemRequestRepository.findById(requestId)
                 .orElseThrow(() -> new NotFoundException("ItemRequest not found"));
 
         return mapper.mapToItemItemRequestResponseDto(request);

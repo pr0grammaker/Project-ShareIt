@@ -4,9 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
-import ru.yandex.practicum.http.clients.CommentHttpClient;
-import ru.yandex.practicum.http.clients.ItemHttpClient;
-import ru.yandex.practicum.http.clients.UserHttpClient;
+import ru.yandex.practicum.http.clients.*;
 
 @Configuration
 @RequiredArgsConstructor
@@ -29,11 +27,15 @@ public class ClientsConfig {
         return factory.createClient(CommentHttpClient.class);
     }
 
-//    @Bean
-//    public BookingHttpClient bookingHttpClient() {
-//        return factory.createClient(BookingHttpClient.class);
-//    }
-//
+    @Bean
+    public BookingHttpClient bookingHttpClient() {
+        return factory.createClient(BookingHttpClient.class);
+    }
+
+    @Bean
+    public ItemRequestHttpClient itemRequestHttpClient() {
+        return factory.createClient(ItemRequestHttpClient.class);
+    }
 
 }
 

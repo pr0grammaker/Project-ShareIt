@@ -10,12 +10,12 @@ public class BookingDto {
 
     private Long id;
 
-    @NotNull(message = "Дата начала бронирования обязательна")
-    @Future(message = "Дата начала должна быть в будущем")
+//    @NotNull(message = "Дата начала бронирования обязательна")
+//    @Future(message = "Дата начала должна быть в будущем")
     private LocalDateTime bookingStart;
 
-    @NotNull(message = "Дата окончания бронирования обязательна")
-    @Future(message = "Дата окончания должна быть в будущем")
+//    @NotNull(message = "Дата окончания бронирования обязательна")
+//    @Future(message = "Дата окончания должна быть в будущем")
     private LocalDateTime bookingEnd;
 
     private Long itemId;

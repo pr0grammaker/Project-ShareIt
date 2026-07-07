@@ -18,7 +18,7 @@ public class ItemController {
     @PostMapping
     public ResponseEntity<ItemDto> addItem(
             @RequestHeader("X-Sharer-User-Id") long userId,
-            @Valid @RequestBody ItemDto itemDto) {
+            @RequestBody ItemDto itemDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(itemService.create(userId, itemDto));
     }
 
@@ -50,9 +50,9 @@ public class ItemController {
 
     @PostMapping("/{itemId}/comment")
     public ResponseEntity<CommentResponseDto> createComment(
-                    @RequestHeader("X-Sharer-User-Id") long userId,
-                    @PathVariable("itemId") long itemId,
-                    @Valid @RequestBody CommentDto commentDto) {
+            @RequestHeader("X-Sharer-User-Id") long userId,
+            @PathVariable("itemId") long itemId,
+            @RequestBody CommentDto commentDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(commentService.createComment(userId, itemId, commentDto));
     }
@@ -61,7 +61,7 @@ public class ItemController {
     public ResponseEntity<Collection<ItemDto>> getCommentsByItemId(
             @RequestHeader("X-Sharer-User-Id") long userId,
             @PathVariable("itemId") long itemId
-    ){
+    ) {
         return ResponseEntity.ok().body(itemService.getCommentsByItemId(userId, itemId));
     }
 
