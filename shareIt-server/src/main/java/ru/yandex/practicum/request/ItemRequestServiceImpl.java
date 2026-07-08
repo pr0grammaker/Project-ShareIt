@@ -2,6 +2,7 @@ package ru.yandex.practicum.request;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.exceptions.ConditionsNotMetException;
 import ru.yandex.practicum.exceptions.NotFoundException;
 import ru.yandex.practicum.item.ItemServiceImpl;
@@ -12,20 +13,21 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ItemRequestServiceImpl implements ItemRequestService {
     private final UserRepository userRepository;
     private final ItemRequestRepository itemRequestRepository;
     private final ItemRequestMapper mapper;
     private final ItemServiceImpl itemServiceImpl;
 
-
+    @Transactional
     @Override
     public ItemRequestResponseDto create(long userId, ItemRequestDto itemRequestDto) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
         if (!itemServiceImpl.searchByText(itemRequestDto.getDescription()).isEmpty()) {
-            throw new ConditionsNotMetException("This item already exist");
+            throw new ConditionsNotMetException("Эта вещь уже существует");
         }
 
         ItemRequest itemRequest = ItemRequest.builder()
@@ -43,7 +45,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public Collection<ItemRequestResponseDto> get(long userId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
         return itemRequestRepository.findAllByRequestorId(userId).stream()
                 .map(mapper::mapToItemItemRequestResponseDto)
@@ -61,10 +63,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public ItemRequestResponseDto getById(long userId, long requestId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
         ItemRequest request = itemRequestRepository.findById(requestId)
-                .orElseThrow(() -> new NotFoundException("ItemRequest not found"));
+                .orElseThrow(() -> new NotFoundException("Запрос на вещь не найден"));
 
         return mapper.mapToItemItemRequestResponseDto(request);
     }

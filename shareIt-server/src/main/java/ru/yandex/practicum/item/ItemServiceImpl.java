@@ -2,6 +2,7 @@ package ru.yandex.practicum.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.booking.BookingMapper;
 import ru.yandex.practicum.booking.BookingRepository;
 import ru.yandex.practicum.exceptions.ConditionsNotMetException;
@@ -18,6 +19,7 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService, CommentService {
 
     private final ItemRepository itemRepositoryDb;
@@ -29,6 +31,7 @@ public class ItemServiceImpl implements ItemService, CommentService {
     private final CommentMapper commentMapper;
     private final ItemRequestRepository itemRequestRepository;
 
+    @Transactional
     @Override
     public ItemDto create(long userId, ItemDto itemDto) {
         if (userRepositoryDb.findById(userId).isEmpty()) {
@@ -52,6 +55,7 @@ public class ItemServiceImpl implements ItemService, CommentService {
         return itemMapper.mapToItemDto(savedItem);
     }
 
+    @Transactional
     @Override
     public ItemDto update(long userId, long itemId, ItemDto itemDto) {
         userRepositoryDb.findById(userId)
@@ -132,6 +136,7 @@ public class ItemServiceImpl implements ItemService, CommentService {
                 .toList();
     }
 
+    @Transactional
     @Override
     public CommentResponseDto createComment(long userId, long itemId, CommentDto commentDto) {
         User user = userRepositoryDb.findById(userId)

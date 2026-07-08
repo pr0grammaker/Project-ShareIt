@@ -1,11 +1,13 @@
 package ru.yandex.practicum.booking;
 
+import lombok.Builder;
 import lombok.Data;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 public class BookingDto {
 
     private Long id;

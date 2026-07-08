@@ -3,6 +3,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import ru.yandex.practicum.ShareItApplication;
 import ru.yandex.practicum.exceptions.DuplicatedDataException;
 import ru.yandex.practicum.exceptions.NotFoundException;
@@ -16,6 +17,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest(classes = ShareItApplication.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@ActiveProfiles("test")
 public class ShareItApplicationUserServiceTest {
 
     @Autowired

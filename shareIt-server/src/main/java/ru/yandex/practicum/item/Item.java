@@ -32,6 +32,6 @@ public class Item {
     private boolean available;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "request_id", nullable = false)
+    @JoinColumn(name = "request_id")
     private ItemRequest request;
 }

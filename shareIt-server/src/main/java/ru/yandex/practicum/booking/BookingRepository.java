@@ -31,12 +31,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Optional<Booking> findNextBooking(@Param("itemId") long itemId,
                                       @Param("now") LocalDateTime now);
 
-    @Query(value = """
-            SELECT b.*
-            FROM bookings b
-            WHERE b.booker_id = :userId
-            ORDER BY b.booking_start DESC
-            """, nativeQuery = true)
+    @Query("""
+            SELECT b
+            FROM Booking b
+            JOIN FETCH b.item i
+            JOIN FETCH b.booker u
+            WHERE b.booker.id = :userId
+            ORDER BY b.bookingStart DESC
+            """)
     List<Booking> getBookingsAll(@Param("userId") long userId);
 
 
@@ -91,13 +93,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     /// ---------------------------------------------------------------------------------------------------------
 
-    @Query(value = """
-            SELECT b.*
-            FROM bookings b
-            JOIN items i ON b.item_id = i.id
-            WHERE i.owner_id = :ownerId
-            ORDER BY b.booking_start DESC
-            """, nativeQuery = true)
+    @Query("""
+            SELECT b
+            FROM Booking b
+            JOIN FETCH b.item i
+            JOIN FETCH b.booker u
+            WHERE i.owner.id = :ownerId
+            ORDER BY b.bookingStart DESC
+            """)
     List<Booking> getBookingsAllByOwner(@Param("ownerId") long ownerId);
 
 

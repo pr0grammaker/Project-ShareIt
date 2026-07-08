@@ -2,6 +2,7 @@ package ru.yandex.practicum.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.exceptions.DuplicatedDataException;
 import ru.yandex.practicum.exceptions.NotFoundException;
 
@@ -9,6 +10,7 @@ import java.util.Collection;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepositoryDb;
@@ -21,6 +23,7 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+    @Transactional
     @Override
     public UserDto createUser(UserDto userDto) {
         if (userRepositoryDb.existsByEmail(userDto.getEmail())) {
@@ -33,6 +36,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.mapToUserDto(save);
     }
 
+    @Transactional
     @Override
     public UserDto updateUser(long userId, UserDto userDto) {
         User user = userRepositoryDb.findById(userId)
@@ -56,6 +60,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.mapToUserDto(save);
     }
 
+    @Transactional
     @Override
     public void deleteUser(long userId) {
         userRepositoryDb.findById(userId)

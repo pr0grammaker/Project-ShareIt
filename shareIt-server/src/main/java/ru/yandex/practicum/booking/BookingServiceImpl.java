@@ -2,6 +2,7 @@ package ru.yandex.practicum.booking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.enums.BookingState;
 import ru.yandex.practicum.enums.Status;
 import ru.yandex.practicum.exceptions.ConditionsNotMetException;
@@ -16,6 +17,7 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
@@ -26,7 +28,7 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingMapper bookingMapper;
 
-
+    @Transactional
     @Override
     public BookingResponseDto createBooking(long userId, BookingDto bookingDto) {
         User booker = userRepositoryDb.findById(userId)
@@ -63,6 +65,7 @@ public class BookingServiceImpl implements BookingService {
         return bookingMapper.mapToBookingResponseDto(save);
     }
 
+    @Transactional
     @Override
     public BookingResponseDto updateApprovalStatus(long bookingId, long ownerId, boolean approved) {
 

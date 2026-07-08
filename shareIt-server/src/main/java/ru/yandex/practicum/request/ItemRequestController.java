@@ -17,7 +17,7 @@ public class ItemRequestController {
     @PostMapping
     public ResponseEntity<ItemRequestResponseDto> create(
             @RequestHeader("X-Sharer-User-Id") long userId,
-            @Valid @RequestBody ItemRequestDto itemRequestDto
+            @RequestBody ItemRequestDto itemRequestDto
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(itemRequestService.create(userId, itemRequestDto));

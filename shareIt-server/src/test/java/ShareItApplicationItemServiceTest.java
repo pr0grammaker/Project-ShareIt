@@ -3,20 +3,27 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import ru.yandex.practicum.ShareItApplication;
+import ru.yandex.practicum.booking.BookingDto;
+import ru.yandex.practicum.booking.BookingRepository;
+import ru.yandex.practicum.booking.BookingResponseDto;
+import ru.yandex.practicum.booking.BookingService;
+import ru.yandex.practicum.exceptions.ConditionsNotMetException;
 import ru.yandex.practicum.exceptions.NotFoundException;
-import ru.yandex.practicum.item.ItemDto;
-import ru.yandex.practicum.item.ItemRepository;
-import ru.yandex.practicum.item.ItemService;
+import ru.yandex.practicum.item.*;
 import ru.yandex.practicum.user.UserDto;
 import ru.yandex.practicum.user.UserRepository;
 import ru.yandex.practicum.user.UserService;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(classes = ShareItApplication.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@ActiveProfiles("test")
 public class ShareItApplicationItemServiceTest {
 
     @Autowired
@@ -26,13 +33,27 @@ public class ShareItApplicationItemServiceTest {
     private UserService userService;
 
     @Autowired
+    private BookingService bookingService;
+
+    @Autowired
+    private CommentService commentService;
+
+    @Autowired
     private UserRepository userRepositoryDb;
 
     @Autowired
     private ItemRepository itemRepositoryDb;
 
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
+
     @BeforeEach
     void clearDb() {
+        commentRepository.deleteAll();
+        bookingRepository.deleteAll();
         itemRepositoryDb.deleteAll();
         userRepositoryDb.deleteAll();
     }
@@ -53,6 +74,18 @@ public class ShareItApplicationItemServiceTest {
                 .build();
 
         return itemService.create(userId, itemDto);
+    }
+
+    private BookingResponseDto createBooking(
+            long userId, LocalDateTime bookingStart, LocalDateTime bookingEnd, long itemId) {
+
+        BookingDto bookingDto = BookingDto.builder()
+                .bookingStart(bookingStart)
+                .bookingEnd(bookingEnd)
+                .itemId(itemId)
+                .build();
+
+        return bookingService.createBooking(userId, bookingDto);
     }
 
     @Test
@@ -442,6 +475,156 @@ public class ShareItApplicationItemServiceTest {
                 .extracting(ItemDto::getName)
                 .contains("DRILL");
     }
+
+
+    @Test
+    void createComment_Success() {
+        UserDto owner = createTestUser("Owner", "owner@mail.com");
+        UserDto booker = createTestUser("Booker", "booker@mail.com");
+        ItemDto item = createItem(owner.getId(), "Item1", "Desc1", true);
+
+        LocalDateTime start = LocalDateTime.now().minusDays(2).withNano(0);
+        LocalDateTime end = start.plusDays(1);
+
+        BookingResponseDto booking = createBooking(booker.getId(), start, end, item.getId());
+        bookingService.updateApprovalStatus(booking.getId(), owner.getId(), true);
+
+        CommentDto commentDto = CommentDto.builder()
+                .text("Отличная вещь!")
+                .build();
+
+        CommentResponseDto response =
+                commentService.createComment(booker.getId(), item.getId(), commentDto);
+
+        assertThat(response)
+                .isNotNull()
+                .satisfies(r -> {
+                    assertThat(r.getText()).isEqualTo("Отличная вещь!");
+                    assertThat(r.getAuthorName()).isEqualTo("Booker");
+                });
+
+    }
+
+    @Test
+    void createComment_UserNotFound() {
+        UserDto owner = createTestUser("Owner", "owner@mail.com");
+        ItemDto item = createItem(owner.getId(), "Item1", "Desc1", true);
+
+        CommentDto commentDto = CommentDto.builder()
+                .text("Комментарий")
+                .build();
+
+        assertThatThrownBy(() ->
+                commentService.createComment(999L, item.getId(), commentDto)
+        )
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Пользователь не найден");
+    }
+
+    @Test
+    void createComment_ItemNotFound() {
+        UserDto user = createTestUser("User", "user@mail.com");
+
+        CommentDto commentDto = CommentDto.builder()
+                .text("Комментарий")
+                .build();
+
+        assertThatThrownBy(() ->
+                commentService.createComment(user.getId(), 999L, commentDto)
+        )
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Вещь не найдена");
+    }
+
+    @Test
+    void createComment_NoCompletedBooking() {
+        UserDto owner = createTestUser("Owner", "owner@mail.com");
+        UserDto booker = createTestUser("Booker", "booker@mail.com");
+        ItemDto item = createItem(owner.getId(), "Item1", "Desc1", true);
+
+        LocalDateTime start = LocalDateTime.now().plusHours(1);
+        LocalDateTime end = start.plusDays(1);
+        createBooking(booker.getId(), start, end, item.getId());
+
+        CommentDto commentDto = CommentDto.builder()
+                .text("Комментарий")
+                .build();
+
+        assertThatThrownBy(() ->
+                commentService.createComment(booker.getId(), item.getId(), commentDto)
+        )
+                .isInstanceOf(ConditionsNotMetException.class)
+                .hasMessageContaining("Комментарий можно оставить только после бронирования");
+    }
+
+
+    @Test
+    void getCommentsByItemId_Success() {
+        UserDto owner = createTestUser("Owner", "owner@mail.com");
+        UserDto booker = createTestUser("Booker", "booker@mail.com");
+        ItemDto item = createItem(owner.getId(), "Item1", "Desc1", true);
+
+        LocalDateTime start = LocalDateTime.now().minusDays(2).withNano(0);
+        LocalDateTime end = start.plusDays(1);
+        BookingResponseDto booking = createBooking(booker.getId(), start, end, item.getId());
+        bookingService.updateApprovalStatus(booking.getId(), owner.getId(), true);
+
+        CommentDto commentDto = CommentDto.builder()
+                .text("Отличная вещь!")
+                .build();
+        commentService.createComment(booker.getId(), item.getId(), commentDto);
+
+        var result = itemService.getCommentsByItemId(booker.getId(), item.getId());
+
+        assertThat(result)
+                .hasSize(1)
+                .first()
+                .satisfies(dto -> {
+                    assertThat(dto.getComments()).hasSize(1);
+                    assertThat(dto.getComments().get(0).getText()).isEqualTo("Отличная вещь!");
+                    assertThat(dto.getComments().get(0).getAuthorName()).isEqualTo("Booker");
+                    assertThat(dto.getLastBooking()).isNotNull();
+                    assertThat(dto.getNextBooking()).isNull();
+                });
+    }
+
+    @Test
+    void getCommentsByItemId_UserNotFound() {
+        UserDto owner = createTestUser("Owner", "owner@mail.com");
+        ItemDto item = createItem(owner.getId(), "Item1", "Desc1", true);
+
+        assertThatThrownBy(() ->
+                itemService.getCommentsByItemId(999L, item.getId())
+        )
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Пользователь не найден");
+    }
+
+    @Test
+    void getCommentsByItemId_ItemNotFound() {
+        UserDto user = createTestUser("User", "user@mail.com");
+
+        assertThatThrownBy(() ->
+                itemService.getCommentsByItemId(user.getId(), 999L)
+        )
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Вещь не найдена");
+    }
+
+    @Test
+    void getCommentsByItemId_NoComments() {
+        UserDto owner = createTestUser("Owner", "owner@mail.com");
+        ItemDto item = createItem(owner.getId(), "Item1", "Desc1", true);
+
+        var result = itemService.getCommentsByItemId(owner.getId(), item.getId());
+
+        assertThat(result)
+                .hasSize(1)
+                .first()
+                .satisfies(dto -> assertThat(dto.getComments()).isEmpty());
+    }
+
+
 
 
 }
