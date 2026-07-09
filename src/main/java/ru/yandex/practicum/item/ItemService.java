@@ -3,13 +3,15 @@ package ru.yandex.practicum.item;
 import java.util.Collection;
 
 public interface ItemService {
-    Item create(long userId, ItemDto itemDto);
+    ItemDto create(long userId, ItemDto itemDto);
 
-    Item update(long userId, long itemId, ItemDto itemDto);
+    ItemDto update(long userId, long itemId, ItemDto itemDto);
 
-    Item getItemById(long itemId);
+    ItemDto getItemById(long itemId);
 
-    Collection<Item> getItemsByOwner(long userId);
+    Collection<ItemDto> getItemsByOwner(long userId);
 
-    Collection<Item> searchByText(String text);
+    Collection<ItemDto> searchByText(String text);
+
+    Collection<ItemDto> getCommentsByItemId(long userId, long itemId);
 }

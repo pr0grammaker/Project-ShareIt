@@ -1,11 +1,11 @@
-package ru.yandex.practicum.user;
+package ru.yandex.practicum.item;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface UserMapper {
-    User mapToUser(UserDto userDto);
+public interface CommentMapper {
 
-    UserDto mapToUserDto(User user);
+    CommentResponseDto mapToCommentResponseDto(Comment comment);
+
 }

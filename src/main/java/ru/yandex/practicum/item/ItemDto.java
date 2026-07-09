@@ -5,12 +5,17 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
+import ru.yandex.practicum.booking.BookingResponseDto;
+
+import java.util.List;
 
 @Data
 @Builder
 public class ItemDto {
 
     private Long id;
+
+    private Long ownerId;
 
     @NotBlank(message = "Название вещи не может быть пустым")
     @Size(max = 100, message = "Название не должно превышать 100 символов")
@@ -22,4 +27,12 @@ public class ItemDto {
 
     @NotNull(message = "Доступность должна быть указана")
     private Boolean available;
+
+    private BookingResponseDto lastBooking;
+    private BookingResponseDto nextBooking;
+
+    private Long requestId;
+
+    private List<CommentResponseDto> comments;
+
 }

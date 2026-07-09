@@ -1,15 +1,35 @@
 package ru.yandex.practicum.item;
 
-import lombok.Builder;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import ru.yandex.practicum.user.User;
 
+@Entity
+@Table(name = "items")
 @Data
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Item {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long ownerId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
+
+    @Column(nullable = false, length = 100)
     private String name;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(nullable = false)
     private boolean available;
-    private Long requestId; // пока не добавлял в dto т.к. не используется на этом этапе
+
+    @Column(name = "request_id")
+    private Long requestId;
 }

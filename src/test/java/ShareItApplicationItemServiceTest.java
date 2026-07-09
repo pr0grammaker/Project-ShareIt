@@ -1,14 +1,15 @@
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.ShareItApplication;
 import ru.yandex.practicum.expection.NotFoundException;
-import ru.yandex.practicum.item.Item;
 import ru.yandex.practicum.item.ItemDto;
+import ru.yandex.practicum.item.ItemRepository;
 import ru.yandex.practicum.item.ItemService;
-import ru.yandex.practicum.user.User;
 import ru.yandex.practicum.user.UserDto;
+import ru.yandex.practicum.user.UserRepository;
 import ru.yandex.practicum.user.UserService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,7 +25,19 @@ public class ShareItApplicationItemServiceTest {
     @Autowired
     private UserService userService;
 
-    private User createTestUser(String name, String email) {
+    @Autowired
+    private UserRepository userRepositoryDb;
+
+    @Autowired
+    private ItemRepository itemRepositoryDb;
+
+    @BeforeEach
+    void clearDb() {
+        itemRepositoryDb.deleteAll();
+        userRepositoryDb.deleteAll();
+    }
+
+    private UserDto createTestUser(String name, String email) {
         UserDto userDto = new UserDto();
         userDto.setName(name);
         userDto.setEmail(email);
@@ -32,7 +45,7 @@ public class ShareItApplicationItemServiceTest {
         return userService.createUser(userDto);
     }
 
-    private Item createItem(long userId, String name, String description, boolean available) {
+    private ItemDto createItem(long userId, String name, String description, boolean available) {
         ItemDto itemDto = ItemDto.builder()
                 .name(name)
                 .description(description)
@@ -44,9 +57,9 @@ public class ShareItApplicationItemServiceTest {
 
     @Test
     void createItem_Success() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
 
-        Item item = createItem(
+        ItemDto item = createItem(
                 user.getId(),
                 "Item1",
                 "Desc1",
@@ -56,16 +69,14 @@ public class ShareItApplicationItemServiceTest {
         assertThat(item)
                 .isNotNull()
                 .extracting(
-                        Item::getName,
-                        Item::getDescription,
-                        Item::isAvailable,
-                        Item::getOwnerId
+                        ItemDto::getName,
+                        ItemDto::getDescription,
+                        ItemDto::getAvailable
                 )
                 .containsExactly(
                         "Item1",
                         "Desc1",
-                        true,
-                        user.getId()
+                        true
                 );
 
         assertThat(item.getId()).isPositive();
@@ -83,14 +94,14 @@ public class ShareItApplicationItemServiceTest {
                 itemService.create(999L, itemDto)
         )
                 .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("User not found");
+                .hasMessageContaining("Пользователь не найден");
     }
 
     @Test
     void createItem_OwnerIsSetCorrectly() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
 
-        Item item = createItem(
+        ItemDto item = createItem(
                 user.getId(),
                 "Item1",
                 "Desc1",
@@ -102,7 +113,7 @@ public class ShareItApplicationItemServiceTest {
 
     @Test
     void createItem_MapsDtoCorrectly() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
 
         ItemDto dto = ItemDto.builder()
                 .name("Phone")
@@ -110,18 +121,18 @@ public class ShareItApplicationItemServiceTest {
                 .available(true)
                 .build();
 
-        Item item = itemService.create(user.getId(), dto);
+        ItemDto item = itemService.create(user.getId(), dto);
 
         assertThat(item)
-                .extracting(Item::getName, Item::getDescription, Item::isAvailable)
+                .extracting(ItemDto::getName, ItemDto::getDescription, ItemDto::getAvailable)
                 .containsExactly("Phone", "iPhone 15", true);
     }
 
     @Test
     void createItem_IdIsGenerated() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
 
-        Item item = createItem(
+        ItemDto item = createItem(
                 user.getId(),
                 "Item1",
                 "Desc1",
@@ -135,14 +146,14 @@ public class ShareItApplicationItemServiceTest {
 
     @Test
     void updateItem_Success_FullUpdate() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
         ItemDto itemDto = ItemDto.builder()
                 .name("Item1")
                 .description("Desc1")
                 .available(true)
                 .build();
 
-        Item item = itemService.create(user.getId(), itemDto);
+        ItemDto item = itemService.create(user.getId(), itemDto);
 
         ItemDto dto = ItemDto.builder()
                 .name("Updated")
@@ -150,15 +161,15 @@ public class ShareItApplicationItemServiceTest {
                 .available(false)
                 .build();
 
-        Item updated = itemService.update(user.getId(), item.getId(), dto);
+        ItemDto updated = itemService.update(user.getId(), item.getId(), dto);
 
         assertThat(updated)
                 .isNotNull()
                 .extracting(
-                        Item::getName,
-                        Item::getDescription,
-                        Item::isAvailable,
-                        Item::getOwnerId
+                        ItemDto::getName,
+                        ItemDto::getDescription,
+                        ItemDto::getAvailable,
+                        ItemDto::getOwnerId
                 )
                 .containsExactly(
                         "Updated",
@@ -170,26 +181,26 @@ public class ShareItApplicationItemServiceTest {
 
     @Test
     void updateItem_UpdateNameOnly() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
         ItemDto itemDto = ItemDto.builder()
                 .name("Item1")
                 .description("Desc1")
                 .available(true)
                 .build();
 
-        Item item = itemService.create(user.getId(), itemDto);
+        ItemDto item = itemService.create(user.getId(), itemDto);
 
         ItemDto dto = ItemDto.builder()
                 .name("NewName")
                 .build();
 
-        Item updated = itemService.update(user.getId(), item.getId(), dto);
+        ItemDto updated = itemService.update(user.getId(), item.getId(), dto);
 
         assertThat(updated)
                 .extracting(
-                        Item::getName,
-                        Item::getDescription,
-                        Item::isAvailable
+                        ItemDto::getName,
+                        ItemDto::getDescription,
+                        ItemDto::getAvailable
                 )
                 .containsExactly(
                         "NewName",
@@ -200,26 +211,26 @@ public class ShareItApplicationItemServiceTest {
 
     @Test
     void updateItem_UpdateDescriptionOnly() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
         ItemDto itemDto = ItemDto.builder()
                 .name("Item1")
                 .description("Desc1")
                 .available(true)
                 .build();
 
-        Item item = itemService.create(user.getId(), itemDto);
+        ItemDto item = itemService.create(user.getId(), itemDto);
 
         ItemDto dto = ItemDto.builder()
                 .description("NewDesc")
                 .build();
 
-        Item updated = itemService.update(user.getId(), item.getId(), dto);
+        ItemDto updated = itemService.update(user.getId(), item.getId(), dto);
 
         assertThat(updated)
                 .extracting(
-                        Item::getName,
-                        Item::getDescription,
-                        Item::isAvailable
+                        ItemDto::getName,
+                        ItemDto::getDescription,
+                        ItemDto::getAvailable
                 )
                 .containsExactly(
                         "Item1",
@@ -230,7 +241,7 @@ public class ShareItApplicationItemServiceTest {
 
     @Test
     void updateItem_ItemNotFound() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
         ItemDto dto = ItemDto.builder()
                 .name("Updated")
                 .description("Updated desc")
@@ -241,19 +252,19 @@ public class ShareItApplicationItemServiceTest {
                 itemService.update(user.getId(), 999L, dto)
         )
                 .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("Item not found");
+                .hasMessageContaining("Вещь не найдена");
     }
 
     @Test
     void updateItem_UserNotFound() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
         ItemDto itemDto = ItemDto.builder()
                 .name("Item1")
                 .description("Desc1")
                 .available(true)
                 .build();
 
-        Item item = itemService.create(user.getId(), itemDto);
+        ItemDto item = itemService.create(user.getId(), itemDto);
 
         ItemDto dto = ItemDto.builder()
                 .name("Updated")
@@ -265,19 +276,19 @@ public class ShareItApplicationItemServiceTest {
                 itemService.update(999L, item.getId(), dto)
         )
                 .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("User not found");
+                .hasMessageContaining("Пользователь не найден");
     }
 
     @Test
     void updateItem_NotOwner() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
         ItemDto itemDto = ItemDto.builder()
                 .name("Item1")
                 .description("Desc1")
                 .available(true)
                 .build();
 
-        Item item = itemService.create(user.getId(), itemDto);
+        ItemDto item = itemService.create(user.getId(), itemDto);
 
         ItemDto dto = ItemDto.builder()
                 .name("Updated")
@@ -285,35 +296,35 @@ public class ShareItApplicationItemServiceTest {
                 .available(false)
                 .build();
 
-        User anotherUser = createTestUser("Alex", "alex@mail.com");
+        UserDto anotherUser = createTestUser("Alex", "alex@mail.com");
 
         assertThatThrownBy(() ->
                 itemService.update(anotherUser.getId(), item.getId(), dto)
         )
                 .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("User is not owner of item");
+                .hasMessageContaining("Пользователь не является владельцем вещи");
     }
 
     @Test
     void getItemById_Success() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
         ItemDto itemDto = ItemDto.builder()
                 .name("Item1")
                 .description("Desc1")
                 .available(true)
                 .build();
 
-        Item item = itemService.create(user.getId(), itemDto);
+        ItemDto item = itemService.create(user.getId(), itemDto);
 
-        Item found = itemService.getItemById(item.getId());
+        ItemDto found = itemService.getItemById(item.getId());
 
         assertThat(found)
                 .isNotNull()
                 .extracting(
-                        Item::getName,
-                        Item::getDescription,
-                        Item::isAvailable,
-                        Item::getOwnerId
+                        ItemDto::getName,
+                        ItemDto::getDescription,
+                        ItemDto::getAvailable,
+                        ItemDto::getOwnerId
                 )
                 .containsExactly(
                         "Item1",
@@ -329,12 +340,12 @@ public class ShareItApplicationItemServiceTest {
                 itemService.getItemById(999L)
         )
                 .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("Item not found");
+                .hasMessageContaining("Вещь не найдена");
     }
 
     @Test
     void getItemsByOwner_Success() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
 
         createItem(user.getId(), "Item1", "Desc1", true);
         createItem(user.getId(), "Item2", "Desc2", false);
@@ -344,13 +355,13 @@ public class ShareItApplicationItemServiceTest {
         assertThat(items)
                 .isNotEmpty()
                 .hasSize(2)
-                .extracting(Item::getName)
+                .extracting(ItemDto::getName)
                 .containsExactlyInAnyOrder("Item1", "Item2");
     }
 
     @Test
     void getItemsByOwner_EmptyList() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
 
         var items = itemService.getItemsByOwner(user.getId());
 
@@ -360,8 +371,8 @@ public class ShareItApplicationItemServiceTest {
 
     @Test
     void getItemsByOwner_FilterByOwner() {
-        User user1 = createTestUser("Bob", "bob@mail.com");
-        User user2 = createTestUser("Alex", "alex@mail.com");
+        UserDto user1 = createTestUser("Bob", "bob@mail.com");
+        UserDto user2 = createTestUser("Alex", "alex@mail.com");
 
         createItem(user1.getId(), "Item1", "Desc1", true);
         createItem(user2.getId(), "Item2", "Desc2", true);
@@ -371,13 +382,13 @@ public class ShareItApplicationItemServiceTest {
 
         assertThat(items)
                 .hasSize(2)
-                .extracting(Item::getName)
+                .extracting(ItemDto::getName)
                 .containsExactlyInAnyOrder("Item1", "Item3");
     }
 
     @Test
     void getItemsByOwner_OwnerIdCorrect() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
 
         createItem(user.getId(), "Item1", "Desc1", true);
 
@@ -385,7 +396,7 @@ public class ShareItApplicationItemServiceTest {
 
         assertThat(items)
                 .isNotEmpty()
-                .extracting(Item::getOwnerId)
+                .extracting(ItemDto::getOwnerId)
                 .containsOnly(user.getId());
     }
 
@@ -405,7 +416,7 @@ public class ShareItApplicationItemServiceTest {
 
     @Test
     void searchByText_FoundItems() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
 
         createItem(user.getId(), "Drill", "Power tool", true);
         createItem(user.getId(), "Hammer", "Steel tool", true);
@@ -414,13 +425,13 @@ public class ShareItApplicationItemServiceTest {
 
         assertThat(result)
                 .isNotEmpty()
-                .extracting(Item::getName)
+                .extracting(ItemDto::getName)
                 .contains("Drill");
     }
 
     @Test
     void searchByText_CaseInsensitive() {
-        User user = createTestUser("Bob", "bob@mail.com");
+        UserDto user = createTestUser("Bob", "bob@mail.com");
 
         createItem(user.getId(), "DRILL", "Power tool", true);
 
@@ -428,10 +439,9 @@ public class ShareItApplicationItemServiceTest {
 
         assertThat(result)
                 .isNotEmpty()
-                .extracting(Item::getName)
+                .extracting(ItemDto::getName)
                 .contains("DRILL");
     }
-
 
 
 }

@@ -10,36 +10,38 @@ import java.util.Collection;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserRepository userRepository;
+
+    private final UserRepository userRepositoryDb;
     private final UserMapper userMapper;
 
     @Override
-    public Collection<User> getAllUsers() {
-        return userRepository.getAllUsers();
+    public Collection<UserDto> getAllUsers() {
+        return userRepositoryDb.findAll().stream()
+                .map(userMapper::mapToUserDto)
+                .toList();
     }
 
     @Override
-    public User createUser(UserDto userDto) {
-        if (userRepository.userEmailExist(userDto.getEmail())) {
-            throw new DuplicatedDataException(
-                    "Пользователь с таким email уже существует");
+    public UserDto createUser(UserDto userDto) {
+        if (userRepositoryDb.existsByEmail(userDto.getEmail())) {
+            throw new DuplicatedDataException("Пользователь с таким email уже существует");
         }
-
         User user = userMapper.mapToUser(userDto);
 
-        return userRepository.save(user);
+        User save = userRepositoryDb.save(user);
+
+        return userMapper.mapToUserDto(save);
     }
 
     @Override
-    public User updateUser(Long userId, UserDto userDto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+    public UserDto updateUser(long userId, UserDto userDto) {
+        User user = userRepositoryDb.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
         if (userDto.getEmail() != null &&
-                userRepository.userEmailExist(userDto.getEmail()) &&
+                userRepositoryDb.existsByEmail(userDto.getEmail()) &&
                 !user.getEmail().equals(userDto.getEmail())) {
-            throw new DuplicatedDataException(
-                    "Пользователь с таким email уже существует");
+            throw new DuplicatedDataException("Пользователь с таким email уже существует");
         }
 
         if (userDto.getName() != null) {
@@ -50,20 +52,23 @@ public class UserServiceImpl implements UserService {
             user.setEmail(userDto.getEmail());
         }
 
-        return userRepository.update(user);
+        User save = userRepositoryDb.save(user);
+        return userMapper.mapToUserDto(save);
     }
 
     @Override
-    public void deleteUser(Long userId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+    public void deleteUser(long userId) {
+        userRepositoryDb.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        userRepository.deleteUser(userId);
+        userRepositoryDb.deleteById(userId);
     }
 
     @Override
-    public User getUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+    public UserDto getUserById(long userId) {
+        User user = userRepositoryDb.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+
+        return userMapper.mapToUserDto(user);
     }
 }
