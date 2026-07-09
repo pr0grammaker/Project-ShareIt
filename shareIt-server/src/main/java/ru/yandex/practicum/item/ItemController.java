@@ -26,7 +26,7 @@ public class ItemController {
     public ResponseEntity<ItemDto> updateItem(
             @RequestHeader("X-Sharer-User-Id") long userId,
             @PathVariable("itemId") long itemId,
-            @RequestBody ItemDto itemDto) {
+            @Valid @RequestBody ItemDto itemDto) {
         return ResponseEntity.ok().body(itemService.update(userId, itemId, itemDto));
     }
 
@@ -52,7 +52,7 @@ public class ItemController {
     public ResponseEntity<CommentResponseDto> createComment(
             @RequestHeader("X-Sharer-User-Id") long userId,
             @PathVariable("itemId") long itemId,
-            @RequestBody CommentDto commentDto) {
+            @Valid @RequestBody CommentDto commentDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(commentService.createComment(userId, itemId, commentDto));
     }
