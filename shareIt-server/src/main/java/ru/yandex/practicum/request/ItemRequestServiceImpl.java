@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.exceptions.ConditionsNotMetException;
 import ru.yandex.practicum.exceptions.NotFoundException;
 import ru.yandex.practicum.item.ItemServiceImpl;
+import ru.yandex.practicum.user.User;
 import ru.yandex.practicum.user.UserRepository;
 
 import java.time.LocalDateTime;
@@ -23,7 +24,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Transactional
     @Override
     public ItemRequestResponseDto create(long userId, ItemRequestDto itemRequestDto) {
-        userRepository.findById(userId)
+        User requestor = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
         if (!itemServiceImpl.searchByText(itemRequestDto.getDescription()).isEmpty()) {
@@ -31,7 +32,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         }
 
         ItemRequest itemRequest = ItemRequest.builder()
-                .requestorId(userId)
+                .requestorId(requestor)
                 .description(itemRequestDto.getDescription())
                 .created(LocalDateTime.now())
                 .items(new ArrayList<>())
@@ -44,10 +45,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public Collection<ItemRequestResponseDto> get(long userId) {
-        userRepository.findById(userId)
+        User requestor = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        return itemRequestRepository.findAllByRequestorId(userId).stream()
+        return itemRequestRepository.findAllByRequestorId(requestor).stream()
                 .map(mapper::mapToItemItemRequestResponseDto)
                 .sorted(Comparator.comparing(ItemRequestResponseDto::getCreated).reversed())
                 .toList();

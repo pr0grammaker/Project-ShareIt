@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.yandex.practicum.item.Item;
+import ru.yandex.practicum.user.User;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -23,8 +24,9 @@ public class ItemRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "requestor_id", nullable = false)
-    private Long requestorId;
+    @ManyToOne
+    @JoinColumn(name = "requestor_id", nullable = false)
+    private User requestorId;
 
     @Column(nullable = false, length = 1000)
     private String description;
